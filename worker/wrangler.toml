@@ -1,0 +1,9 @@
+name = "smart-life-webapp-worker"
+main = "worker/src/index.ts"
+compatibility_date = "2025-08-30"
+# Set your Cloudflare zone and route to bind the Worker to your domain
+# Example:
+# routes = [
+#   { pattern = "app.example.com/api/homeassistant/*", zone_name = "example.com" }
+# ]
+
