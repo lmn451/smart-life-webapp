@@ -12,7 +12,9 @@
       </el-form-item>
     </el-form>
     <template v-else>
-      <el-button type="default" @click="refreshDevices()">Refresh</el-button>
+      <el-button type="default" :loading="isRefreshing" @click="manualRefresh">
+        Refresh <span v-if="loginState" class="refresh-countdown">({{ formattedCountdown }})</span>
+      </el-button>
       <el-button type="default" @click="logout()">Logout</el-button>
     </template>
   </div>
@@ -45,7 +47,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import tuya from '@/libs/tuya'
 
@@ -68,6 +70,61 @@ export default {
 
     const loginForm = ref({ username: '', password: '' })
 
+    // Auto-refresh configuration/state
+    const AUTO_REFRESH_INTERVAL_SECONDS = 1020
+    const isRefreshing = ref(false)
+    const nextRefreshAt = ref(0) // timestamp (ms) for next scheduled refresh
+    let tickerId = null
+
+    const secondsRemaining = computed(() => {
+      const diff = nextRefreshAt.value - Date.now()
+      return Math.max(0, Math.ceil(diff / 1000))
+    })
+
+    const formattedCountdown = computed(() => {
+      const s = secondsRemaining.value
+      const mm = String(Math.floor(s / 60)).padStart(2, '0')
+      const ss = String(s % 60).padStart(2, '0')
+      return `${mm}:${ss}`
+    })
+
+    const scheduleNext = () => {
+      nextRefreshAt.value = Date.now() + AUTO_REFRESH_INTERVAL_SECONDS * 1000
+    }
+
+    const autoRefreshNow = async () => {
+      isRefreshing.value = true
+      try {
+        await refreshDevices()
+      } finally {
+        isRefreshing.value = false
+      }
+    }
+
+    const manualRefresh = async () => {
+      await autoRefreshNow()
+      scheduleNext()
+    }
+
+    const startTicker = () => {
+      if (tickerId) return
+      if (!nextRefreshAt.value) scheduleNext()
+      tickerId = setInterval(async () => {
+        if (!loginState.value) return
+        if (!isRefreshing.value && Date.now() >= nextRefreshAt.value) {
+          await autoRefreshNow()
+          scheduleNext()
+        }
+      }, 1000)
+    }
+
+    const stopTicker = () => {
+      if (tickerId) {
+        clearInterval(tickerId)
+        tickerId = null
+      }
+    }
+
     onMounted(async () => {
       // TODO handle expired session
       loginState.value = !!homeAssistantClient.getSession()
@@ -75,6 +132,15 @@ export default {
         localStorage.clear()
       }
       devices.value = JSON.parse(localStorage.getItem('devices')) || []
+
+      if (loginState.value) {
+        await autoRefreshNow() // immediate refresh on app open
+        startTicker() // then every 1020 seconds
+      }
+    })
+
+    onUnmounted(() => {
+      stopTicker()
     })
 
     const login = async () => {
@@ -86,7 +152,8 @@ export default {
         localStorage.setItem('session', JSON.stringify(homeAssistantClient.getSession()))
         loginState.value = true
         loginForm.value = { username: '', password: '' }
-        refreshDevices()
+        await manualRefresh()
+        startTicker()
       } catch (err) {
         ElMessage.error(`Oops, login error. (${err})`)
       }
@@ -98,6 +165,9 @@ export default {
       loginState.value = false
       loginForm.value = { username: '', password: '' }
       devices.value = []
+      stopTicker()
+      isRefreshing.value = false
+      nextRefreshAt.value = 0
     }
 
     const refreshDevices = async () => {
@@ -154,7 +224,11 @@ export default {
       refreshDevices,
       toggleDevice,
       triggerScene,
-      getState
+      getState,
+      // new bindings
+      isRefreshing,
+      formattedCountdown,
+      manualRefresh
     }
   }
 }
@@ -202,5 +276,11 @@ export default {
 .el-avatar {
   background: transparent;
   margin-right: 16px;
+}
+
+.refresh-countdown {
+  font-size: 12px;
+  opacity: 0.7;
+  margin-left: 6px;
 }
 </style>
