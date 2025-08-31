@@ -1,4 +1,4 @@
-# smart-life-webapp
+# smart-life-webapp with pwa
 
 Simple web app to control Smart Life devices and scenes, deployed on Cloudflare Pages with Pages Functions for the Tuya Home Assistant API proxy.
 
