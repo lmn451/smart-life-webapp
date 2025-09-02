@@ -1,4 +1,13 @@
 <template>
+  <div id="theme-toggle">
+    <el-tooltip content="Toggle theme" placement="bottom">
+      <el-button circle size="large" @click="toggleTheme">
+        <el-icon>
+          <component :is="ThemeIcon" />
+        </el-icon>
+      </el-button>
+    </el-tooltip>
+  </div>
   <div id="nav">
     <el-form v-if="!loginState" :model="loginForm" :inline="true">
       <el-form-item label="Email address" size="medium">
@@ -19,7 +28,7 @@
   <div id="devices">
     <div v-for="device in devicesSorted" :key="device.id">
       <el-card class="device" :style="device.data.online === false ? 'filter: opacity(0.65) grayscale(1);' : ''">
-        <el-tooltip effect="light" :content="device.type" :offset="-20"
+        <el-tooltip effect="dark" :content="device.type" :offset="-20"
           :visible-arrow="false">
           <el-avatar :src="`/device_icons/${device.type}.png`" shape="square">
             <img src="/device_icons/default.png"/>
@@ -27,14 +36,15 @@
         </el-tooltip>
         <span class="device-name">{{ device.name }}</span>
         <template v-if="device.type === 'scene'">
-          <el-button type="default" circle size="large"
-            class="trigger"
+          <el-button type="primary" circle size="large"
             @click="triggerScene(device);"
           ><i class="material-icons-round">play_arrow</i></el-button>
         </template>
         <template v-else>
-          <el-button type="default" circle size="large"
-            :class="getState(device.data.state) ? 'state-on' : 'state-off'"
+          <el-button
+            :type="getState(device.data.state) ? 'success' : 'default'"
+            circle
+            size="large"
             :disabled="!device.data.online"
             @click="toggleDevice(device);"
           ><i class="material-icons-round">{{ device.data.online ? 'power_settings_new' : 'cloud_off' }}</i></el-button>
@@ -47,6 +57,8 @@
 <script>
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import { Moon, Sunny } from '@element-plus/icons-vue'
+import { useTheme } from '@/composables/useTheme'
 import tuya from '@/libs/tuya'
 
 export default {
@@ -68,13 +80,22 @@ export default {
 
     const loginForm = ref({ username: '', password: '' })
 
+    const { isDark, toggleTheme } = useTheme()
+    const ThemeIcon = computed(() => (isDark.value ? Sunny : Moon))
+
     onMounted(async () => {
       // TODO handle expired session
       loginState.value = !!homeAssistantClient.getSession()
       if (!loginState.value) {
-        localStorage.clear()
+        // Clear session-scoped data but preserve UI preferences like theme
+        try {
+          localStorage.removeItem('session')
+          localStorage.removeItem('devices')
+        } catch (e) {}
+        devices.value = []
+      } else {
+        devices.value = JSON.parse(localStorage.getItem('devices')) || []
       }
-      devices.value = JSON.parse(localStorage.getItem('devices')) || []
     })
 
     const login = async () => {
@@ -94,7 +115,11 @@ export default {
 
     const logout = () => {
       homeAssistantClient.dropSession()
-      localStorage.clear()
+      // Clear session-scoped data but preserve UI preferences like theme
+      try {
+        localStorage.removeItem('session')
+        localStorage.removeItem('devices')
+      } catch (e) {}
       loginState.value = false
       loginForm.value = { username: '', password: '' }
       devices.value = []
@@ -154,13 +179,25 @@ export default {
       refreshDevices,
       toggleDevice,
       triggerScene,
-      getState
+      getState,
+      isDark,
+      toggleTheme,
+      Moon,
+      Sunny,
+      ThemeIcon
     }
   }
 }
 </script>
 
 <style scoped>
+#theme-toggle {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 1000;
+}
+
 #nav {
   margin: 0 auto;
   margin-top: 64px;
@@ -181,18 +218,6 @@ export default {
   margin-left: auto;
 }
 
-.el-button.state-on:enabled {
-  color: #f9f9f9;
-  background-color: #7dd8ba;
-}
-.el-button.state-off:enabled {
-  color: #a3a4a7;
-  background-color: #f9f9f9;
-}
-.el-button.trigger:enabled {
-  color: #f9f9f9;
-  background-color: #9eabce;
-}
 .el-button.el-button--large {
   padding: 9px;
   font-size: 20px;
