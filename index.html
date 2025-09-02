@@ -3,13 +3,49 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0a0a0a" />
     <title>smart-life-webapp</title>
     <link rel="icon" href="/favicon.ico" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Round">
+    <style>
+      /* Critical CSS to prevent flash */
+      html.dark {
+        color-scheme: dark;
+        background-color: #141414;
+      }
+      html:not(.dark) {
+        color-scheme: light;
+        background-color: #ffffff;
+      }
+    </style>
+    <script>
+      /* Preboot theme script - runs before any other JS */
+      (function () {
+        var saved = null;
+        try {
+          saved = localStorage.getItem('theme');
+        } catch (e) {}
+        
+        // Default to dark if no saved preference or invalid value
+        var isDark = !saved || saved === 'dark';
+        
+        // Apply theme class immediately
+        if (isDark) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+        
+        // Update theme-color meta
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) {
+          meta.content = isDark ? '#0a0a0a' : '#ffffff';
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="app"></div>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>
-
