@@ -95,6 +95,7 @@ export default {
         devices.value = []
       } else {
         devices.value = JSON.parse(localStorage.getItem('devices')) || []
+        refreshDevices()
       }
     })
 
