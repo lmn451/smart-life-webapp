@@ -8,6 +8,7 @@
       </el-button>
     </el-tooltip>
   </div>
+  <AppLogo class="app-logo" />
   <div id="nav">
     <el-form v-if="!loginState" :model="loginForm" :inline="true">
       <el-form-item label="Email address" size="medium">
@@ -60,9 +61,11 @@ import { ElMessage } from 'element-plus'
 import { Moon, Sunny } from '@element-plus/icons-vue'
 import { useTheme } from '@/composables/useTheme'
 import tuya from '@/libs/tuya'
+import AppLogo from '@/components/AppLogo.vue'
 
 export default {
   name: 'Home',
+  components: { AppLogo },
   setup () {
     const homeAssistantClient = new tuya.HomeAssistantClient(
       JSON.parse(localStorage.getItem('session'))
@@ -227,5 +230,8 @@ export default {
 .el-avatar {
   background: transparent;
   margin-right: 16px;
+}
+.app-logo {
+  margin: 32px auto 0;
 }
 </style>
