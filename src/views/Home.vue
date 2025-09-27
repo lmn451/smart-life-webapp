@@ -1,7 +1,14 @@
 <template>
   <div id="theme-toggle">
-    <el-tooltip content="Toggle theme" placement="bottom">
-      <el-button circle size="large" @click="toggleTheme">
+    <el-tooltip
+      content="Toggle theme"
+      placement="bottom"
+    >
+      <el-button
+        circle
+        size="large"
+        @click="toggleTheme"
+      >
         <el-icon>
           <component :is="ThemeIcon" />
         </el-icon>
@@ -10,45 +17,84 @@
   </div>
   <AppLogo class="app-logo" />
   <div id="nav">
-    <el-form v-if="!loginState" :model="loginForm" :inline="true">
-      <el-form-item label="Email address" size="medium">
-        <el-input v-model="loginForm.username"></el-input>
+    <el-form
+      v-if="!loginState"
+      :model="loginForm"
+      :inline="true"
+    >
+      <el-form-item
+        label="Email address"
+        size="default"
+      >
+        <el-input v-model="loginForm.username" />
       </el-form-item>
       <el-form-item label="Password">
-        <el-input type="password" v-model="loginForm.password"></el-input>
+        <el-input
+          v-model="loginForm.password"
+          type="password"
+        />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="login()">Login</el-button>
+        <el-button
+          type="primary"
+          @click="login()"
+        >
+          Login
+        </el-button>
       </el-form-item>
     </el-form>
     <template v-else>
-      <el-button type="default" @click="refreshDevices()">Refresh</el-button>
-      <el-button type="default" @click="logout()">Logout</el-button>
+      <el-button @click="refreshDevices()">
+        Refresh
+      </el-button>
+      <el-button @click="logout()">
+        Logout
+      </el-button>
     </template>
   </div>
   <div id="devices">
-    <div v-for="device in devicesSorted" :key="device.id">
-      <el-card class="device" :style="device.data.online === false ? 'filter: opacity(0.65) grayscale(1);' : ''">
-        <el-tooltip effect="dark" :content="device.type" :offset="-20"
-          :visible-arrow="false">
-          <el-avatar :src="`/device_icons/${device.type}.png`" shape="square">
-            <img src="/device_icons/default.png"/>
+    <div
+      v-for="device in devicesSorted"
+      :key="device.id"
+    >
+      <el-card
+        class="device"
+        :style="device.data.online === false ? 'filter: opacity(0.65) grayscale(1);' : ''"
+      >
+        <el-tooltip
+          effect="dark"
+          :content="device.type"
+          :offset="-20"
+          :show-arrow="false"
+        >
+          <el-avatar
+            :src="`/device_icons/${device.type}.png`"
+            shape="square"
+          >
+            <img src="/device_icons/default.png">
           </el-avatar>
         </el-tooltip>
         <span class="device-name">{{ device.name }}</span>
         <template v-if="device.type === 'scene'">
-          <el-button type="primary" circle size="large"
+          <el-button
+            type="primary"
+            circle
+            size="large"
             @click="triggerScene(device);"
-          ><i class="material-icons-round">play_arrow</i></el-button>
+          >
+            <i class="material-icons-round">play_arrow</i>
+          </el-button>
         </template>
         <template v-else>
           <el-button
-            :type="getState(device.data.state) ? 'success' : 'default'"
+            :type="getState(device.data.state) ? 'success' : undefined"
             circle
             size="large"
             :disabled="!device.data.online"
             @click="toggleDevice(device);"
-          ><i class="material-icons-round">{{ device.data.online ? 'power_settings_new' : 'cloud_off' }}</i></el-button>
+          >
+            <i class="material-icons-round">{{ device.data.online ? 'power_settings_new' : 'cloud_off' }}</i>
+          </el-button>
         </template>
       </el-card>
     </div>
@@ -94,7 +140,7 @@ export default {
         try {
           localStorage.removeItem('session')
           localStorage.removeItem('devices')
-        } catch (e) {}
+        } catch {}
         devices.value = []
       } else {
         devices.value = JSON.parse(localStorage.getItem('devices')) || []
@@ -122,7 +168,7 @@ export default {
       try {
         localStorage.removeItem('session')
         localStorage.removeItem('devices')
-      } catch (e) {}
+      } catch {}
       loginState.value = false
       loginForm.value = { username: '', password: '' }
       devices.value = []

@@ -7,7 +7,8 @@ const routes = [
     name: 'Home',
     component: Home
   }, {
-    path: '/:catchAll(.*)',
+    // Vue Router v4 recommended catch-all pattern
+    path: '/:pathMatch(.*)*',
     redirect: '/'
   }
 ]
