@@ -12,3 +12,10 @@ createApp(App)
   .use(store)
   .use(router)
   .mount('#app')
+
+// Register a minimal service worker to enable PWA install criteria
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {})
+  })
+}

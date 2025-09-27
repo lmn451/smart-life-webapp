@@ -1,0 +1,11 @@
+{
+  "name": "Smart Life Webapp",
+  "short_name": "Smart Life",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "description": "Smart Life progressive web app"
+}
