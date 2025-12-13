@@ -7,7 +7,7 @@ Note: Only Smart Life accounts created with email and password are supported. Ac
 Important: Postfix your automation names with a trailing `#` if you want them treated as automations; otherwise they will be displayed as scenes. This works around Tuya API behavior.
 
 ## Tech stack
-- Vue 3 + Vue Router 4 + Vuex 4
+- Vue 3 + Vue Router 4
 - Element Plus 2
 - Cloudflare Pages + Pages Functions (Wrangler for local dev)
 - Node.js 22+
